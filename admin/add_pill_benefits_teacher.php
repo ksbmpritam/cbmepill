@@ -1,0 +1,172 @@
+<?php
+include ("includes/header_teacher.php");
+require ("includes/function.php");
+require ("language/language.php");
+require_once ("thumbnail_images.class.php");
+
+if (isset($_POST['submit'])) {
+    //Main Image
+    $image_id = filter($_POST['image_id']);
+    $pill_id = filter($_POST['pill_id']);
+    $benefits = str_replace("'","\'",$_POST['benefits']);
+    $type = filter($_POST['type']);
+    
+    $data = array(
+        'image_id' => $image_id, 
+        'pill_id' => $pill_id,
+        'benefits' => $benefits,
+        'type' => $type,
+        );
+    Insert('pill_benefits', $data);
+    
+    $_SESSION['msg'] = "Pill benefit added successfuly..";
+    header("Location:all_pill_benefits_teacher.php");
+    exit;
+}
+
+?>
+
+<style>
+    .margin_top{
+        margin:20px 0 0 0!important;
+    }
+</style>
+
+<div class="row">
+
+    <div class="col-md-12">
+
+        <div class="card">
+
+            <div class="page_title_block">
+
+                <div class="col-md-5 col-xs-12">
+
+                    <div class="page_title">Add Pill Benefits</div>
+
+                </div>
+
+            </div>
+
+            <div class="clearfix"></div>
+
+            <div class="row mrg-top">
+
+                <div class="col-md-12">
+
+
+
+                    <div class="col-md-12 col-sm-12">
+
+                        <?php if (isset($_SESSION['msg'])) { ?> 
+
+                            <div class="alert alert-success alert-dismissible" role="alert"> 
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+
+                                <?php echo $_SESSION['msg']; ?></a> </div>
+
+                            <?php unset($_SESSION['msg']);
+                            }
+                            ?> 
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="card-body mrg_bottom"> 
+                
+                <img src="images/no_image_selected.png" id="img" style="width:200px!important;margin: 0 0 20px;">
+                
+                <form action="" name="addeditcategory" method="post" class="form form-horizontal" enctype="multipart/form-data">
+
+                            <div class="row">
+
+                                <div class="col-lg-12 col-md-12 col-sm-12 margin_top">
+                                    <label>Select Image</label>
+                                    <select class="form-control" name="image_id" required onchange="show_img(this.value)">
+                                    <option value="" selected disabled>Select</option>
+                                    <?php
+                                    $sql = "SELECT id,photos FROM `game_photos` ORDER BY id DESC";
+                                    $query = mysqli_query($mysqli, $sql);
+                                    while ($row = mysqli_fetch_assoc($query)) {
+                                    ?>
+                                        <option value="<?=$row['id'] ?>"><?=$row['photos'] ?></option>
+                                    <?php
+                                    }
+                                    ?>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-lg-12 col-md-12 col-sm-12 margin_top">
+                                    <label>Select Pill</label>
+                                    <select class="form-control" name="pill_id">
+                                    <?php
+                                        $sql = "SELECT id,pill FROM `pills`";
+                                        $query = mysqli_query($mysqli, $sql);
+                                        while ($row = mysqli_fetch_assoc($query)) {
+                                        ?>
+                                            <option value="<?=$row['id'] ?>"><?=$row['pill'] ?></option>
+                                            <?php
+                                        }
+                                    ?> 
+                                            </select>                           
+                                </div>
+                                
+                                <div class="col-lg-12 col-md-12 col-sm-12 margin_top">
+                                    <label>Write Here..</label>
+                                    <textarea class="form-control" name="benefits" required></textarea>
+                                </div>
+                                
+                                <div class="col-lg-12 col-md-12 col-sm-12 margin_top">
+                                    <label>Type</label>
+                                    <select class="form-control" name="type">
+                                        <option>Benefits</option>
+                                        <option>Note</option>
+                                    </select>                           
+                                </div>
+                                            
+                                <div class="col-md-6">
+                                    <button type="submit" name="submit" class="btn btn-primary" style="margin-top: 10px;">Save</button>
+                                </div>
+                                            
+                                
+                                
+                            </div>
+                            
+                        </div>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    
+    const show_img = async (t) => {
+        try {
+            let val = t;
+            let url = `get_img_src.php?id=${val}`;
+            let response = await fetch(url);
+            let data = await response.text();
+            if(data.indexOf(".vish") > -1){
+                document.querySelector('#img').src = "images/no_image_selected.png";
+            }else{
+                document.querySelector('#img').src = data;
+            }
+        } catch (error) {
+            console.log(`The Error is ${error}`);
+        }
+    }
+    
+</script>
+
+<?php include ("includes/footer.php"); ?>       

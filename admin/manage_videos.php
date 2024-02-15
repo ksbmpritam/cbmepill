@@ -1,0 +1,306 @@
+<?php include("includes/header.php");
+
+	require("includes/function.php");
+	require("language/language.php");
+
+	
+	if(isset($_GET['delete_id']))
+	{
+	    $id=$_GET['delete_id'];
+	    
+	     $sqls="DELETE FROM `tbl_video` WHERE `id`=$id";
+	   $query=mysqli_query($mysqli,$sqls);
+	   if($query){
+	        $_SESSION['msg']="12";  
+	   
+	   }
+	}
+
+  if(isset($_GET['video_id']))
+  { 
+
+    $img_res=mysqli_query($mysqli,'SELECT * FROM tbl_video WHERE id='.$_GET['video_id'].'');
+    $img_res_row=mysqli_fetch_assoc($img_res);
+           
+    if($img_res_row['video_thumbnail']!="")
+     {
+          unlink('images/thumbs/'.$img_res_row['video_thumbnail']);
+          unlink('images/'.$img_res_row['video_thumbnail']);
+
+          unlink($img_res_row['video_url']);
+      }
+ 
+    Delete('tbl_video','id='.$_GET['video_id'].'');
+    
+    $_SESSION['msg']="12";
+    header( "Location:manage_videos.php");
+    exit;
+    
+  }
+
+  //Active and Deactive status
+if(isset($_GET['status_deactive_id']))
+{
+   $data = array('status'  =>  '0');
+  
+   $edit_status=Update('tbl_video', $data, "WHERE id = '".$_GET['status_deactive_id']."'");
+  
+   $_SESSION['msg']="14";
+   header( "Location:manage_videos.php");
+   exit;
+}
+if(isset($_GET['status_active_id']))
+{
+    $data = array('status'  =>  '1');
+    
+    $edit_status=Update('tbl_video', $data, "WHERE id = '".$_GET['status_active_id']."'");
+    
+    $_SESSION['msg']="13";   
+    header( "Location:manage_videos.php");
+    exit;
+}  
+
+//Active and Deactive featured
+  if(isset($_GET['featured_deactive_id']))
+  {
+    $data = array('featured_video'  =>  '0');
+    
+    $edit_status=Update('tbl_video', $data, "WHERE id = '".$_GET['featured_deactive_id']."'");
+    
+     $_SESSION['msg']="14";
+     header( "Location:manage_videos.php");
+     exit;
+  }
+  if(isset($_GET['featured_active_id']))
+  {
+    $data = array('featured_video'  =>  '1');
+    
+    $edit_status=Update('tbl_video', $data, "WHERE id = '".$_GET['featured_active_id']."'");
+    
+    $_SESSION['msg']="13";
+     header( "Location:manage_videos.php");
+     exit;
+  }
+
+?>
+                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="card mrg_bottom">
+          <div class="page_title_block">
+            <div class="col-md-5 col-xs-12">
+              <div class="page_title">Manage Videos</div>
+            </div>
+            <div class="col-md-7 col-xs-12">
+              <div class="search_list">
+                <div class="search_block">
+                      <!--<form  method="post" action="">
+                        <input class="form-control input-sm" placeholder="Search video..." aria-controls="DataTables_Table_0" type="search" name="search_text" required>
+                        <button type="submit" name="data_search" class="btn-search"><i class="fa fa-search"></i></button>
+                      </form>-->  
+                    </div>
+                <div class="add_btn_primary"> <a href="add_video.php">Add Item</a> </div>
+              </div>
+            </div>
+          </div>
+          <div class="clearfix"></div>
+          <div class="row mrg-top">
+            <div class="col-md-12">
+              <div class="col-md-12 col-sm-12">
+                <?php if(isset($_SESSION['msg'])){?> 
+               	 <div class="alert alert-success alert-dismissible" role="alert"> <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                	<?php echo $client_lang[$_SESSION['msg']] ; ?></a> </div>
+                <?php unset($_SESSION['msg']);}?>	
+              </div>
+            </div>
+          </div>
+          <div class="row mrg-top " style="margin-right: 10px;">
+                <input type="text" name="search" placeholder="Search..." id="myInput" class="search-bar-pk">
+                <script>
+                $(document).ready(function(){
+                  $("#myInput").on("keyup", function() {
+                    var value = $(this).val().toLowerCase();
+                    $("#myTable tr").filter(function() {
+                      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                    });
+                  });
+                });
+                </script>
+              <form class="form-inline" method="post" style="float:right">
+                <div class="form-group">
+                <select name="cat_id" id="cat_id" class="select2" style="width:160px !important;" required>
+                    <option value="">Add Category</option>
+           <?php 
+              $cod=mysqli_query($mysqli,"select * from tbl_category");
+              if(mysqli_num_rows($cod)>0){
+                   while($cisds=mysqli_fetch_assoc($cod)){
+           ?>
+           <option value="<?=$cisds['cid'];?>"><?=$cisds['category_name'];?></option>
+           <?php } } ?>
+       </select>
+       <script>
+           $(document).ready(function(){
+              $('#cat_id').change(function(){
+                 $.ajax({
+                                    url: "adnroid/subject.php", 
+               method: "post",
+               data: {id : $(this).val()} 
+    })
+    .done(function(response) {
+        $('#subj').html(response);
+                });    
+              });
+               
+           });
+       </script>
+    </div>
+    <div class="form-group">
+      <select name="sub_id" id="subj" class="select2" style="width:160px !important;" required>
+           <option value="">Add Subcategory</option>
+       </select>
+    </div>
+    <button type="submit" name="gdsa" class="btn btn-warning ">Submit</button>
+  </form>    
+  <?php 
+      $cuy='';$suy='';
+      if(isset($_POST['gdsa']))
+      {
+          $cuy=$_POST['cat_id'];
+          $_SESSION['cuy']=$cuy;
+          
+          $suy=$_POST['sub_id'];
+          $_SESSION['suy']=$suy;
+      }
+   ?>
+          </div>
+          
+           <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>S. no</th>
+        <th>Course</th>
+        <th>Subject</th>
+        <th>Title</th>
+        <th>Video</th>
+        <th>Number</th>
+        <th>Update</th>
+      </tr>
+    </thead>
+    <tbody id="myTable">
+        <?php 
+        $qry="SELECT * FROM `tbl_video` where cat_id='".$_SESSION['cuy']."' and subject_id='".$_SESSION['suy']."' order by `rangee` asc"; 
+		$qry_result=mysqli_query($mysqli,$qry);
+		$numrows=mysqli_num_rows($qry_result);
+		if(mysqli_num_rows($qry_result)>0)
+		{
+		    $s=1;
+		    while($row=mysqli_fetch_assoc($qry_result))
+		    {
+		          $qr   = mysqli_query($mysqli,"select * from subject where id='".$row['subject_id']."'");
+		          $row1 = mysqli_fetch_assoc($qr);
+		          $qr1  = mysqli_query($mysqli,"select * from tbl_category where cid='".$row['cat_id']."'");
+		          $row2 = mysqli_fetch_assoc($qr1);
+		            
+            ?>
+        <form method="POST" >
+      <tr style="" id="tr<?=$s?>">
+        <td><?=$s;?> <?php 
+        // echo  $_SESSION['cuy'].$_SESSION['suy'];
+        ?></td>
+        <td><?=$row2['category_name'];?></td>
+        <td><?=$row1['subject_name'];?></td>
+        <td><?=$row['video_title'];?></td>
+        <td>
+  <video width="100" controls>
+  <source src="<?=$row['video_url'];?>" type="video/mp4">
+</video>  
+        </td>
+        <td>
+        
+        <span class="token" id="token<?=$s;?>" data="<?=$s;?>"><?=$row['rangee'];?></span>
+        
+        
+<select name="token" id="input<?=$s?>" style="border:none; display:none;">
+     <?php $nu = mysqli_query($mysqli,"SELECT DISTINCT(`rangee`) as `rangee` FROM `tbl_video` where cat_id='".$_SESSION['cuy']."' and subject_id='".$_SESSION['suy']."'
+                 order by `rangee` asc");
+           if(mysqli_num_rows($nu)>0)
+           {
+               $nuhfbs=1;
+             while($row3=mysqli_fetch_assoc($nu))
+              {
+     ?>
+    <option value="<?=$row3['rangee'];?>" <?php if($row3['rangee']==$row['rangee']){ echo "selected";}?>><?=$nuhfbs++?></option>
+    <?php }} ?>
+</select>    
+        <input type="hidden" name="user_id" value="<?=$row['id'];?>">
+        </td>
+        <td><input type="submit" style="padding:6px;" class="btn btn-success btn-sm" name="submit<?=$s?>" value="Update">
+           </form> <a href='edit_video.php?video_id=<?=$row['id'];?>' target='_blank'><button class="btn btn-danger btn-sm" style="padding:6px;" >Edit</button></a>
+           <a href='manage_videos.php?delete_id=<?=$row['id'];?>' target='_blank'><button class="btn btn-danger btn-sm" style="padding:6px;" >Delete</button></a>
+        </td>      
+        </tr>
+        
+        
+        <?php
+             if(isset($_POST['submit'.$s]))
+             {
+                
+                $queryget1=mysqli_query($mysqli,"SELECT * FROM `tbl_video` where `id`='".$_POST['user_id']."' and  cat_id='".$_SESSION['cuy']."' and subject_id='".$_SESSION['suy']."' ");
+                $rode1=mysqli_fetch_assoc($queryget1);
+                
+                //second
+                $queryget=mysqli_query($mysqli,"SELECT * FROM `tbl_video` where `rangee`='".$_POST['token']."' and  cat_id='".$_SESSION['cuy']."' and subject_id='".$_SESSION['suy']."' ");
+                $rode=mysqli_fetch_assoc($queryget);
+                
+                if($queryget)
+                {
+                  $up1=mysqli_query($mysqli,"update `tbl_video` set `rangee`='".$rode['rangee']."' where id='".$rode1['id']."' and  cat_id='".$_SESSION['cuy']."' and subject_id='".$_SESSION['suy']."' ");
+                  $up2=mysqli_query($mysqli,"update `tbl_video` set `rangee`='".$rode1['rangee']."' where id='".$rode['id']."'and  cat_id='".$_SESSION['cuy']."' and subject_id='".$_SESSION['suy']."' ");
+                
+                if($up2)
+                 {
+                     echo "<script>window.location.href='manage_videos.php';</script>";
+                     $_SESSION['msg']="11";
+                 }    
+                }
+                
+                
+             }
+        ?>
+       
+      <?php $s++;} }?>
+    </tbody>
+  </table>
+  
+  <script>
+            $(document).ready(function(){
+                $(".token").click(function(){
+                    var one=$(this).attr('data');
+                    var i=1;
+                    for(i=1;i<=<?=$numrows?>;i++)
+                    {
+                      if(one==i)
+                    {
+                        $('#token'+i).css("display","none");
+                        $('#input'+i).css("display","block");
+                        $('#tr'+i).css("box-shadow","0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22)");
+                    }
+                    else
+                    {
+                        $('#token'+i).css("display","block");
+                        $('#input'+i).css("display","none");
+                        $('#tr'+i).css("box-shadow","none");
+                    }    
+                    }
+                });
+            });
+        </script>
+           <div class="col-md-12 col-xs-12">
+            
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </div>
+    </div>
+        
+<?php include("includes/footer.php");?>       
